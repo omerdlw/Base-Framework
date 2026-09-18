@@ -1,0 +1,73 @@
+#!/bin/sh
+set -e
+
+# ==============================================================================
+# Base Framework Pre-Commit Hook
+# 1. Enforces Layer Architecture Rules (npm run modules:check)
+# 2. Enforces TypeScript Type Correctness (npm run typecheck)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Immutable Core Check (for downstream projects with .framework-manifest.json)
+# ------------------------------------------------------------------------------
+if [ -f ".framework-manifest.json" ]; then
+  STAGED_CORE_FILES=$(git diff --cached --name-only -- src/core/ 2>/dev/null || true)
+  if [ -n "$STAGED_CORE_FILES" ]; then
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")
+    # Allow core changes on contribution branches, sync branches, or during merge commits
+    MERGE_HEAD=$(git rev-parse --git-path MERGE_HEAD 2>/dev/null || true)
+    if [ -n "$MERGE_HEAD" ] && [ -f "$MERGE_HEAD" ]; then
+      echo "ℹ️  [pre-commit] Merge commit in progress; permitting core updates."
+    else
+      case "$CURRENT_BRANCH" in
+        contrib/*|core/*|sync/*)
+          echo "ℹ️  [pre-commit] Core changes detected on branch '${CURRENT_BRANCH}'."
+          echo "    (Valid contribution/synchronization branch)"
+          ;;
+        *)
+        echo ""
+        echo "❌ [pre-commit] Immutable Core Violation!"
+        echo "    Direct modifications to 'src/core/' are strictly prohibited on project branches ('${CURRENT_BRANCH}')."
+        echo "    In downstream projects, 'src/core' is an upstream-managed immutable engine."
+        echo ""
+        echo "    Modified files:"
+        echo "$STAGED_CORE_FILES" | sed 's/^/      - /'
+        echo ""
+        echo "    Solutions:"
+        echo "    1. If this is a project-specific feature: Use an extension point, slot, or registry override in 'src/features' or 'src/app'."
+        echo "    2. If this is an engine bugfix/enhancement for Base Framework:"
+        echo "       a. Switch to a contribution branch: git checkout -b contrib/<feature-name>"
+        echo "       b. Commit the core changes and test"
+        echo "       c. Submit as a PR to Base Framework (upstream)"
+        echo ""
+        exit 1
+        ;;
+      esac
+    fi
+  fi
+fi
+
+echo "🛡️  [pre-commit] Checking architectural boundaries..."
+if ! npm run modules:check --silent; then
+  echo ""
+  echo "❌ [pre-commit] Architectural boundary check failed!"
+  echo "    - src/core must not import from @/features, @/app, or @/infrastructure"
+  echo "    - src/infrastructure must not import from @/features or @/app"
+  echo "    - All features in src/features must have an index.ts barrel export"
+  echo "    - Server files in src/features must enforce server-only / use server"
+  echo ""
+  exit 1
+fi
+
+echo "🔍 [pre-commit] Validating TypeScript types..."
+if ! npm run typecheck; then
+  echo ""
+  echo "❌ [pre-commit] TypeScript type check failed!"
+  echo "    Please resolve all type errors before committing."
+  echo ""
+  exit 1
+fi
+
+echo "✅ [pre-commit] All architectural boundaries and TypeScript checks passed."
+exit 0
+
