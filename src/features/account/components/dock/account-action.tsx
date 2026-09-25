@@ -1,0 +1,51 @@
+"use client";
+
+import { memo, type MouseEvent } from "react";
+import { Button, Icon } from "@/core/primitives";
+import { getDockActionClass } from "@/core/modules/dock";
+import { ACTION_TONE_CLASS } from "@/core/tokens";
+
+export interface AccountInboxActionProps {
+  canManageRequests?: boolean;
+  inboxCount?: number;
+  isOwner?: boolean;
+  onOpenInbox?: (event: MouseEvent<HTMLButtonElement>) => void;
+}
+
+export const AccountInboxAction = memo(function AccountInboxAction({
+  canManageRequests = false,
+  inboxCount = 0,
+  isOwner = false,
+  onOpenInbox,
+}: AccountInboxActionProps) {
+  if (!isOwner) return null;
+
+  const shouldShowInboxAction =
+    canManageRequests && inboxCount > 0 && typeof onOpenInbox === "function";
+
+  if (!shouldShowInboxAction) return null;
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        aria-label={`Inbox with ${inboxCount} pending requests`}
+        className={getDockActionClass({
+          className:
+            "transition-all disabled:cursor-not-allowed disabled:opacity-50",
+          variant: ACTION_TONE_CLASS,
+        })}
+        onClick={(event: MouseEvent<HTMLButtonElement>) => {
+          event.stopPropagation();
+          onOpenInbox?.(event);
+        }}
+        type="button"
+      >
+        <Icon icon="solar:inbox-bold" size={16} />
+        <span>Inbox {inboxCount}</span>
+      </Button>
+    </div>
+  );
+});
+
+export const AccountAction = AccountInboxAction;
+export default AccountInboxAction;

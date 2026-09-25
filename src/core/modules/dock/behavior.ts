@@ -1,0 +1,682 @@
+"use client";
+
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
+import {
+  BOTTOM_LOCK_ACTIVATION_DISTANCE,
+  BOTTOM_LOCK_MIN_SCROLLABLE_HEIGHT,
+  BOTTOM_LOCK_RELEASE_DISTANCE,
+  COMPACT_ACTIVATION_BUFFER,
+  COMPACT_MIN_ACTIVATION_DELTA,
+  COMPACT_RELEASE_THRESHOLD,
+  COMPACT_SCROLL_THRESHOLD,
+  COMPACT_TOGGLE_COOLDOWN_MS,
+  HORIZONTAL_GESTURE_DELTA_THRESHOLD,
+  HORIZONTAL_GESTURE_DOMINANCE_RATIO,
+  HORIZONTAL_GESTURE_SUPPRESSION_MS,
+  DOCK_COLLAPSE_TO_COMPACT_DELAY_MS,
+  DOCK_COMPACT_BEHAVIOR,
+  OVERSCROLL_THRESHOLD,
+  SCROLL_DIRECTION_EPSILON,
+} from "./constants";
+import {
+  blurActiveElement,
+  focusDockElement,
+  getDistanceToBottom,
+  getDockFocusableElements,
+  getScrollableHeight,
+  isEditableDockTarget,
+  isInteractiveTarget,
+  shouldRestoreDockFocus,
+} from "./utils";
+
+export {
+  blurActiveElement,
+  focusDockElement,
+  getDistanceToBottom,
+  getDockFocusableElements,
+  getScrollableHeight,
+  isEditableDockTarget,
+  isInteractiveTarget,
+  shouldRestoreDockFocus,
+};
+
+export function getCurrentTimestamp(): number {
+  return typeof performance !== "undefined" &&
+    typeof performance.now === "function"
+    ? performance.now()
+    : Date.now();
+}
+
+export function canUseBottomLock(
+  scrollableHeight?: number | null,
+  viewportHeight: number | null = null,
+): boolean {
+  const resolvedScrollableHeight =
+    scrollableHeight != null
+      ? Number(scrollableHeight) || 0
+      : getScrollableHeight();
+  const resolvedViewportHeight =
+    viewportHeight != null
+      ? Number(viewportHeight) || 0
+      : typeof window !== "undefined"
+        ? window.innerHeight || 0
+        : 0;
+
+  const maxScrollableDistance =
+    resolvedViewportHeight > 0
+      ? Math.max(0, resolvedScrollableHeight - resolvedViewportHeight)
+      : resolvedScrollableHeight;
+  return maxScrollableDistance >= BOTTOM_LOCK_MIN_SCROLLABLE_HEIGHT;
+}
+
+export function resolveCompactBehavior({
+  isInputFocused,
+}: {
+  isInputFocused?: boolean;
+  isPointerIdle?: boolean;
+  isVideoPlaying?: boolean;
+} = {}): string {
+  return isInputFocused
+    ? DOCK_COMPACT_BEHAVIOR.FOCUSED
+    : DOCK_COMPACT_BEHAVIOR.BROWSING;
+}
+
+export function canUseCompactDock({
+  hasActiveItem,
+  isActionEngaged,
+  isHudActive,
+  isLoading,
+  isOverlay,
+  isStatus,
+  isSurface,
+  isBehaviorFocused,
+  title,
+}: {
+  hasActiveItem?: boolean;
+  isActionEngaged?: boolean;
+  isHudActive?: boolean;
+  isLoading?: boolean;
+  isOverlay?: boolean;
+  isStatus?: boolean;
+  isSurface?: boolean;
+  isBehaviorFocused?: boolean;
+  title?: string | null;
+}): boolean {
+  return (
+    Boolean(hasActiveItem && String(title || "").trim()) &&
+    !(
+      isOverlay ||
+      isSurface ||
+      isLoading ||
+      isStatus ||
+      isActionEngaged ||
+      isHudActive ||
+      isBehaviorFocused
+    )
+  );
+}
+
+export function resolveCompactState(
+  scrollY: number,
+  previousScrollY: number,
+  currentValue: boolean,
+  downwardTravel: number,
+  compactActivationSuppressed: boolean,
+): boolean {
+  const scrollDelta = scrollY - previousScrollY;
+
+  if (
+    scrollY <= COMPACT_RELEASE_THRESHOLD ||
+    scrollDelta < -SCROLL_DIRECTION_EPSILON
+  )
+    return false;
+  if (compactActivationSuppressed) return currentValue;
+
+  return scrollY >= COMPACT_SCROLL_THRESHOLD &&
+    scrollDelta >= COMPACT_MIN_ACTIVATION_DELTA &&
+    downwardTravel >= COMPACT_ACTIVATION_BUFFER
+    ? true
+    : currentValue;
+}
+
+export function useDockBehavior({
+  isVideoPlaying: _isVideoPlaying = false,
+}: { isVideoPlaying?: boolean } = {}) {
+  const [behavior, setBehavior] = useState<string>(
+    DOCK_COMPACT_BEHAVIOR.BROWSING,
+  );
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    const updateBehavior = () => {
+      const nextBehavior = resolveCompactBehavior({
+        isInputFocused: isEditableDockTarget(document.activeElement),
+      });
+      setBehavior((current) =>
+        current === nextBehavior ? current : nextBehavior,
+      );
+    };
+
+    updateBehavior();
+
+    document.addEventListener("focusin", updateBehavior);
+    document.addEventListener("focusout", updateBehavior);
+
+    return () => {
+      document.removeEventListener("focusin", updateBehavior);
+      document.removeEventListener("focusout", updateBehavior);
+    };
+  }, []);
+
+  return behavior;
+}
+
+export function useDockFocusTrap({
+  containerRef,
+  enabled = true,
+  onDismiss = null,
+}: {
+  containerRef: RefObject<HTMLElement | null>;
+  enabled?: boolean;
+  onDismiss?: (() => void) | null;
+}) {
+  const hasAutoFocusedRef = useRef(false);
+
+  useEffect(() => {
+    if (!enabled) {
+      hasAutoFocusedRef.current = false;
+      return;
+    }
+
+    const container = containerRef?.current;
+    if (!container) return;
+
+    const focusFrameId = window.requestAnimationFrame(() => {
+      if (hasAutoFocusedRef.current) return;
+      hasAutoFocusedRef.current = true;
+
+      const preferredTarget = container.querySelector("[data-dock-autofocus]");
+      const target =
+        preferredTarget instanceof HTMLElement
+          ? preferredTarget
+          : getDockFocusableElements(container)[0] || container;
+      focusDockElement(target);
+    });
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.key === "Escape" &&
+        !event.defaultPrevented &&
+        typeof onDismiss === "function"
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        onDismiss();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+
+      const focusableElements = getDockFocusableElements(container);
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        focusDockElement(container);
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement;
+
+      if (event.shiftKey && activeElement === firstElement) {
+        event.preventDefault();
+        focusDockElement(lastElement);
+      } else if (!event.shiftKey && activeElement === lastElement) {
+        event.preventDefault();
+        focusDockElement(firstElement);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.cancelAnimationFrame(focusFrameId);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [containerRef, enabled, onDismiss]);
+}
+
+export function useDockKeyboard({
+  expanded,
+  focusedIndex,
+  isOverlayActive,
+  navigate,
+  dockItems,
+  setExpanded,
+  setFocusedIndex,
+}: {
+  expanded: boolean;
+  focusedIndex: number;
+  isOverlayActive: boolean;
+  navigate: (path?: any, options?: any) => void;
+  dockItems: any[];
+  setExpanded: (expanded: boolean) => void;
+  setFocusedIndex: (update: number | ((current: number) => number)) => void;
+}) {
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (
+        isEditableDockTarget(event.target) ||
+        isInteractiveTarget(event.target)
+      )
+        return;
+      if (isOverlayActive || !expanded) return;
+
+      const { key } = event;
+      if (key === "Escape") {
+        event.preventDefault();
+        setExpanded(false);
+        return;
+      }
+      if (key === "Enter" && focusedIndex !== -1) {
+        event.preventDefault();
+        const focusedItem = dockItems[focusedIndex];
+        navigate(focusedItem?.path, { item: focusedItem });
+        return;
+      }
+
+      if (dockItems.length === 0) return;
+
+      if (key === "ArrowDown") {
+        event.preventDefault();
+        setFocusedIndex((current) =>
+          current < dockItems.length - 1 ? current + 1 : 0,
+        );
+        return;
+      }
+      if (key === "ArrowUp") {
+        event.preventDefault();
+        setFocusedIndex((current) =>
+          current > 0 ? current - 1 : dockItems.length - 1,
+        );
+      }
+    },
+    [
+      expanded,
+      focusedIndex,
+      isOverlayActive,
+      navigate,
+      dockItems,
+      setExpanded,
+      setFocusedIndex,
+    ],
+  );
+
+  useEffect(() => {
+    if (!expanded) return;
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [expanded, handleKeyDown]);
+}
+
+export function useDockCompactController({
+  activeItem,
+  expanded,
+  isHudActive = false,
+  pathname,
+  searchQuery = "",
+  compactLocked = false,
+  isVideoPlaying = false,
+}: {
+  activeItem: any;
+  expanded: boolean;
+  isHudActive?: boolean;
+  pathname?: string;
+  searchQuery?: string;
+  compactLocked?: boolean;
+  isVideoPlaying?: boolean;
+}) {
+  const [compact, setCompact] = useState(false);
+
+  const compactRef = useRef(false);
+  const restoreCompactRef = useRef(false);
+  const suppressCompactUntilRef = useRef(0);
+  const lastScrollYRef = useRef(0);
+  const downwardTravelRef = useRef(0);
+  const lastToggleTimeRef = useRef(0);
+  const bottomLockRef = useRef(false);
+  const userExitedCompactRef = useRef(false);
+  const wasExpandedRef = useRef(false);
+  const collapseTimerRef = useRef<any>(null);
+
+  const hasActiveItem = Boolean(activeItem);
+  const activeItemPath = activeItem?.path || "";
+  const activeItemName = activeItem?.name || "";
+  const activeItemTitle = activeItem?.title || activeItem?.name || "";
+
+  const isOverlay = Boolean(activeItem?.isOverlay);
+  const isSurface = Boolean(activeItem?.isSurface);
+  const isLoading = Boolean(activeItem?.isLoading);
+  const isStatus = Boolean(activeItem?.isStatus);
+  const isActionEngaged = Boolean(searchQuery?.trim());
+
+  const behavior = useDockBehavior({ isVideoPlaying });
+  const isBehaviorFocused = behavior === DOCK_COMPACT_BEHAVIOR.FOCUSED;
+
+  useEffect(() => {
+    return () => {
+      if (collapseTimerRef.current !== null) {
+        clearTimeout(collapseTimerRef.current);
+        collapseTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  const exitCompact = useCallback(
+    (options: { preserveRestore?: boolean } = {}) => {
+      const preserveRestore = Boolean(
+        options && typeof options === "object"
+          ? options.preserveRestore
+          : false,
+      );
+
+      if (collapseTimerRef.current !== null) {
+        clearTimeout(collapseTimerRef.current);
+        collapseTimerRef.current = null;
+      }
+
+      if (!compactRef.current) return false;
+
+      userExitedCompactRef.current = !preserveRestore;
+      restoreCompactRef.current = preserveRestore;
+      compactRef.current = false;
+      bottomLockRef.current = false;
+      downwardTravelRef.current = 0;
+      suppressCompactUntilRef.current =
+        getCurrentTimestamp() + COMPACT_TOGGLE_COOLDOWN_MS;
+      lastScrollYRef.current =
+        typeof window === "undefined" ? 0 : window.scrollY || 0;
+      lastToggleTimeRef.current = getCurrentTimestamp();
+
+      setCompact(false);
+      return true;
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const compactAllowed = canUseCompactDock({
+      hasActiveItem,
+      isActionEngaged,
+      isBehaviorFocused,
+      isHudActive,
+      isLoading,
+      isOverlay,
+      isStatus,
+      isSurface,
+      title: activeItemTitle,
+    });
+    const canPreserveCompactRestore = isSurface && restoreCompactRef.current;
+
+    if (!compactAllowed || compactLocked) {
+      if (canPreserveCompactRestore) {
+        compactRef.current = false;
+        lastScrollYRef.current = window.scrollY || 0;
+        downwardTravelRef.current = 0;
+        setCompact(false);
+        return;
+      }
+
+      restoreCompactRef.current = false;
+      compactRef.current = false;
+      bottomLockRef.current = false;
+      lastScrollYRef.current = 0;
+      downwardTravelRef.current = 0;
+      setCompact(false);
+      return;
+    }
+
+    const currentScrollY = window.scrollY || 0;
+    const initialDistanceToBottom = getDistanceToBottom(currentScrollY);
+    const initialScrollableHeight = getScrollableHeight();
+    const canInitialBottomLock = canUseBottomLock(initialScrollableHeight);
+    const shouldStartBottomLocked =
+      canInitialBottomLock &&
+      currentScrollY > COMPACT_RELEASE_THRESHOLD &&
+      initialDistanceToBottom <= BOTTOM_LOCK_RELEASE_DISTANCE;
+
+    if (expanded) {
+      wasExpandedRef.current = true;
+      if (collapseTimerRef.current !== null) {
+        clearTimeout(collapseTimerRef.current);
+        collapseTimerRef.current = null;
+      }
+      restoreCompactRef.current =
+        restoreCompactRef.current || compactRef.current;
+      compactRef.current = false;
+      bottomLockRef.current = false;
+      suppressCompactUntilRef.current = 0;
+      lastScrollYRef.current = currentScrollY;
+      downwardTravelRef.current = 0;
+      setCompact(false);
+      return;
+    }
+
+    const isCollapsingFromExpanded = wasExpandedRef.current;
+    wasExpandedRef.current = false;
+
+    if (isCollapsingFromExpanded) {
+      const shouldRestoreToCompact = restoreCompactRef.current;
+      userExitedCompactRef.current = false;
+      restoreCompactRef.current = false;
+      compactRef.current = false;
+      bottomLockRef.current = false;
+      lastScrollYRef.current = currentScrollY;
+      downwardTravelRef.current = 0;
+      setCompact(false);
+
+      if (collapseTimerRef.current !== null)
+        clearTimeout(collapseTimerRef.current);
+
+      collapseTimerRef.current = setTimeout(() => {
+        collapseTimerRef.current = null;
+        if (typeof window === "undefined") return;
+
+        const scrollY = window.scrollY || 0;
+        const distanceToBottom = getDistanceToBottom(scrollY);
+        const scrollableHeight = getScrollableHeight();
+        const canBottomLock = canUseBottomLock(scrollableHeight);
+        const isNearBottom =
+          canBottomLock &&
+          scrollY > COMPACT_RELEASE_THRESHOLD &&
+          distanceToBottom <= BOTTOM_LOCK_RELEASE_DISTANCE;
+
+        const canActivateCompact =
+          compactAllowed &&
+          !compactLocked &&
+          scrollY > COMPACT_RELEASE_THRESHOLD &&
+          (shouldRestoreToCompact ||
+            isNearBottom ||
+            scrollY >= COMPACT_SCROLL_THRESHOLD);
+
+        if (canActivateCompact) {
+          if (isNearBottom) bottomLockRef.current = true;
+          compactRef.current = true;
+          lastToggleTimeRef.current = getCurrentTimestamp();
+          setCompact(true);
+        }
+      }, DOCK_COLLAPSE_TO_COMPACT_DELAY_MS);
+    } else {
+      const shouldRestoreCompact =
+        restoreCompactRef.current &&
+        ((canInitialBottomLock &&
+          currentScrollY > COMPACT_RELEASE_THRESHOLD &&
+          initialDistanceToBottom <= BOTTOM_LOCK_RELEASE_DISTANCE) ||
+          currentScrollY >= COMPACT_SCROLL_THRESHOLD);
+
+      restoreCompactRef.current = false;
+      bottomLockRef.current = shouldStartBottomLocked;
+      compactRef.current = shouldStartBottomLocked
+        ? true
+        : shouldRestoreCompact;
+      lastScrollYRef.current = currentScrollY;
+      downwardTravelRef.current = 0;
+      setCompact(compactRef.current);
+    }
+
+    let scrollFrameId: number | null = null;
+
+    const updateCompactState = () => {
+      if (collapseTimerRef.current !== null) return;
+
+      const scrollY = window.scrollY || 0;
+      const distanceToBottom = getDistanceToBottom(scrollY);
+      const scrollableHeight = getScrollableHeight();
+      const canBottomLock = canUseBottomLock(scrollableHeight);
+
+      if (userExitedCompactRef.current) {
+        if (distanceToBottom > BOTTOM_LOCK_RELEASE_DISTANCE)
+          userExitedCompactRef.current = false;
+        else return;
+      }
+
+      const isAtBottom =
+        canBottomLock &&
+        scrollY > COMPACT_RELEASE_THRESHOLD &&
+        distanceToBottom <= BOTTOM_LOCK_ACTIVATION_DISTANCE;
+      const canKeepBottomLock =
+        canBottomLock &&
+        scrollY > COMPACT_RELEASE_THRESHOLD &&
+        distanceToBottom <= BOTTOM_LOCK_RELEASE_DISTANCE;
+
+      if (isAtBottom) bottomLockRef.current = true;
+      else if (!canKeepBottomLock) bottomLockRef.current = false;
+
+      if (scrollY < OVERSCROLL_THRESHOLD) {
+        lastScrollYRef.current = scrollY;
+        return;
+      }
+
+      const scrollDelta = scrollY - lastScrollYRef.current;
+      const compactActivationSuppressed =
+        !compactRef.current &&
+        getCurrentTimestamp() < suppressCompactUntilRef.current;
+
+      if (scrollDelta >= COMPACT_MIN_ACTIVATION_DELTA) {
+        downwardTravelRef.current += scrollDelta;
+      } else if (
+        scrollDelta < -SCROLL_DIRECTION_EPSILON ||
+        scrollY <= COMPACT_RELEASE_THRESHOLD
+      ) {
+        downwardTravelRef.current = 0;
+      }
+
+      const isBottomLocked = Boolean(
+        bottomLockRef.current && canKeepBottomLock,
+      );
+      const nextValue =
+        isBottomLocked ||
+        resolveCompactState(
+          scrollY,
+          lastScrollYRef.current,
+          compactRef.current,
+          downwardTravelRef.current,
+          compactActivationSuppressed,
+        );
+
+      lastScrollYRef.current = scrollY;
+
+      if (nextValue === compactRef.current) return;
+      if (
+        getCurrentTimestamp() - lastToggleTimeRef.current <
+        COMPACT_TOGGLE_COOLDOWN_MS
+      )
+        return;
+
+      compactRef.current = nextValue;
+      lastToggleTimeRef.current = getCurrentTimestamp();
+      if (nextValue) downwardTravelRef.current = 0;
+      setCompact(nextValue);
+    };
+
+    const handleWheel = (event: WheelEvent) => {
+      const horizontalDelta = Math.abs(event.deltaX);
+      const verticalDelta = Math.abs(event.deltaY);
+
+      if (horizontalDelta < HORIZONTAL_GESTURE_DELTA_THRESHOLD) return;
+      if (horizontalDelta <= verticalDelta * HORIZONTAL_GESTURE_DOMINANCE_RATIO)
+        return;
+
+      suppressCompactUntilRef.current =
+        getCurrentTimestamp() + HORIZONTAL_GESTURE_SUPPRESSION_MS;
+      downwardTravelRef.current = 0;
+    };
+
+    const scheduleCompactStateUpdate = () => {
+      if (scrollFrameId !== null) return;
+      scrollFrameId = window.requestAnimationFrame(() => {
+        scrollFrameId = null;
+        updateCompactState();
+      });
+    };
+
+    updateCompactState();
+
+    window.addEventListener("scroll", scheduleCompactStateUpdate, {
+      passive: true,
+    });
+    window.addEventListener("wheel", handleWheel, { passive: true });
+    window.addEventListener("resize", scheduleCompactStateUpdate, {
+      passive: true,
+    });
+
+    return () => {
+      window.removeEventListener("scroll", scheduleCompactStateUpdate);
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("resize", scheduleCompactStateUpdate);
+      if (scrollFrameId !== null) window.cancelAnimationFrame(scrollFrameId);
+    };
+  }, [
+    pathname,
+    expanded,
+    compactLocked,
+    hasActiveItem,
+    isActionEngaged,
+    isBehaviorFocused,
+    isHudActive,
+    activeItemName,
+    activeItemPath,
+    activeItemTitle,
+    isLoading,
+    isOverlay,
+    isStatus,
+    isSurface,
+  ]);
+
+  return { compact, exitCompact };
+}
+
+export function useDockCompact(options: any): boolean {
+  return useDockCompactController(options).compact;
+}
+
+export function useDockRouteReset(
+  pathname: string | null,
+  onRouteChange?: (path: string | null) => void,
+) {
+  const previousPathRef = useRef(pathname);
+
+  useEffect(() => {
+    if (previousPathRef.current === pathname) return;
+    previousPathRef.current = pathname;
+    onRouteChange?.(pathname);
+  }, [onRouteChange, pathname]);
+}

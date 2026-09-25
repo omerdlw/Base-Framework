@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --color-black: var(--black);
+  --color-white: var(--white);
+  --color-primary: var(--primary);
+
+  --font-zuume: var(--font-zuume);
+}
+
+@layer base {
+  :root {
+    --white: #fcfcfb;
+    --black: #101010;
+    --primary: #fcfcfb;
+  }
+
+  html,
+  body {
+    overscroll-behavior: none;
+    color-scheme: dark;
+  }
+}
+
+* {
+  -ms-overflow-style: none;
+  box-sizing: border-box;
+  scrollbar-width: none;
+  outline: 0;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+@layer utilities {
+  .center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .skeleton-block {
+    position: relative;
+    overflow: hidden;
+    background-color: rgb(252 252 251 / 0.05);
+  }
+}
