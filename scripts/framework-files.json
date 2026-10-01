@@ -1,0 +1,17 @@
+{
+  "groups": {
+    "ai": [
+      "AGENTS.md",
+      "CLAUDE.md",
+      ".agents",
+      ".claudeignore",
+      ".mcp.json",
+      "graphify-out",
+      ".codebase-memory",
+      ".remember"
+    ],
+    "docs": ["src/docs"],
+    "tests": ["tests"],
+    "scaffold": ["scripts/scaffold.js"]
+  }
+}
