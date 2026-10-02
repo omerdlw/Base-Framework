@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@iconify-icon/react": "3.0.3",
-    "@omerdlw/base-framework": "^1.0.1",
+    "@omerdlw/base-framework": "^1.0.3",
     "@radix-ui/react-tooltip": "1.2.16",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.116.0",
