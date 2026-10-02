@@ -64,6 +64,17 @@ registerHooks({
       return { url: NEXT_NAVIGATION_STUB_URL, shortCircuit: true };
     }
 
+    if (
+      !specifier.startsWith(".") &&
+      !specifier.startsWith("@/") &&
+      context.parentURL?.includes("base-framework-package")
+    ) {
+      return nextResolve(specifier, {
+        ...context,
+        parentURL: pathToFileURL(path.join(SRC_ROOT, "../package.json")).href,
+      });
+    }
+
     let basePath = null;
     if (specifier.startsWith("@/")) {
       basePath = path.join(SRC_ROOT, specifier.slice(2));

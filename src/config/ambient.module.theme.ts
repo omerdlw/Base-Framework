@@ -1,5 +1,5 @@
-import { defineTheme } from "@/modules/theme";
-import { ambientTheme } from "@/modules/ambient";
+import { defineTheme } from "@omerdlw/base-framework/theme";
+import { ambientTheme } from "@omerdlw/base-framework/modules/ambient";
 
 export const ambientThemeConfig = defineTheme(ambientTheme, {
   slots: {

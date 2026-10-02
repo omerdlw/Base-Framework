@@ -26,7 +26,7 @@ import {
   installFakeSupabase,
   type FakeSupabase,
 } from "../support/supabase.ts";
-import { setReportSink, USER_MESSAGES } from "../../src/core/utils/index.ts";
+import { setReportSink, USER_MESSAGES } from "@omerdlw/base-framework/utils";
 
 let fake: FakeSupabase;
 let reported: any[];

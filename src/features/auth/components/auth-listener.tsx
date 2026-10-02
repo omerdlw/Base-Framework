@@ -8,13 +8,16 @@ import {
   resolveAuthStatusDetails,
   saveLastKnownAccount,
 } from "@/features/account";
-import { DOCK_EVENTS, useDockActions } from "@/modules/dock";
-import { globalEvents } from "@/core/events";
+import {
+  DOCK_EVENTS,
+  useDockActions,
+} from "@omerdlw/base-framework/modules/dock";
+import { globalEvents } from "@omerdlw/base-framework/events";
 import { AUTH_EVENTS, resolvePageAuth } from "../constants";
-import { useGlobalEvent } from "@/core/hooks";
-import { getCurrentPath } from "@/core/utils";
-import { usePageController } from "@/core/kernel";
-import { Spinner } from "@/core/primitives";
+import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
+import { getCurrentPath } from "@omerdlw/base-framework/utils";
+import { usePageController } from "@omerdlw/base-framework/kernel";
+import { Spinner } from "@/features/shell/primitives";
 import { createSignInSurfaceEntry } from "./sign-in-surface";
 
 function AuthEventBridge(): null {

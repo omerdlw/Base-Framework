@@ -22,14 +22,14 @@ import {
   markAsRead,
 } from "../../client";
 import { useAuth } from "@/features/auth/provider";
-import { useToast } from "@/modules/notification";
+import { useToast } from "@omerdlw/base-framework/modules/notification";
 import {
   DockSurfaceExtension,
   dockFadeVariants,
   dockListItemVariants,
   isValidBannerUrl,
   type SurfaceEntry,
-} from "@/modules/dock";
+} from "@omerdlw/base-framework/modules/dock";
 import {
   applyAvatarFallback,
   getUserAvatarFallbackUrl,
@@ -40,11 +40,11 @@ import {
   NOTIFICATIONS_TITLE,
   SOCIAL_EVENTS,
 } from "../../constants";
-import { globalEvents } from "@/core/events";
-import { useGlobalEvent } from "@/core/hooks";
-import { cn, toUserMessage } from "@/core/utils";
-import { AdaptiveImage } from "@/core/primitives";
-import { Button, Icon } from "@/core/primitives";
+import { globalEvents } from "@omerdlw/base-framework/events";
+import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
+import { cn, toUserMessage } from "@omerdlw/base-framework/utils";
+import { AdaptiveImage } from "@/features/shell/primitives";
+import { Button, Icon } from "@/features/shell/primitives";
 
 const NOTIFICATION_TYPES = Object.freeze({
   FOLLOW_REQUEST: "FOLLOW_REQUEST",
@@ -68,8 +68,8 @@ const FALLBACK_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
 
 const ICON_ACTION_BASE_CLASS =
   "center size-9 shrink-0 cursor-pointer rounded-[14px] select-none transition-[background-color,color,border-color,transform] duration-micro ease-out-quart motion-safe:active:scale-[0.97] motion-reduce:active:scale-100";
-const PRIMARY_ICON_BUTTON_CLASS = `${ICON_ACTION_BASE_CLASS} bg-primary/10 text-primary hover:bg-primary hover:text-black focus-visible:bg-primary focus-visible:text-black`;
-const SECONDARY_ICON_BUTTON_CLASS = `${ICON_ACTION_BASE_CLASS} bg-white/5 text-white/70 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white`;
+const PRIMARY_ICON_BUTTON_CLASS = `${ICON_ACTION_BASE_CLASS} bg-primary/10 text-primary hover:bg-primary hover:text-black`;
+const SECONDARY_ICON_BUTTON_CLASS = `${ICON_ACTION_BASE_CLASS} bg-white/5 text-white/70 hover:bg-white/10 hover:text-white`;
 
 const NOTIFICATION_ICONS: Record<string, string> = {
   [NOTIFICATION_TYPES.FOLLOW_REQUEST]: "solar:user-plus-bold",
@@ -619,7 +619,7 @@ export function AccountNotificationsSurface({
                     "flex h-full shrink-0 cursor-pointer items-center gap-2 rounded-full px-3.5 text-xs font-semibold transition-colors duration-micro ease-out-quart select-none",
                     isActive
                       ? "bg-white text-black"
-                      : "bg-transparent text-white/70 hover:bg-white/5 hover:text-white focus-visible:bg-white/10 focus-visible:text-white",
+                      : "bg-transparent text-white/70 hover:bg-white/5 hover:text-white",
                   )}
                 >
                   <span>{tab.label}</span>
@@ -642,7 +642,7 @@ export function AccountNotificationsSurface({
                 <Button
                   type="button"
                   onClick={handleMarkAllRead}
-                  className="flex h-full shrink-0 cursor-pointer items-center rounded-full bg-transparent px-3 text-xs font-semibold text-white/70 transition-colors duration-micro ease-out-quart select-none hover:bg-white/5 hover:text-white focus-visible:bg-white/10 focus-visible:text-white"
+                  className="flex h-full shrink-0 cursor-pointer items-center rounded-full bg-transparent px-3 text-xs font-semibold text-white/70 transition-colors duration-micro ease-out-quart select-none hover:bg-white/5 hover:text-white"
                 >
                   <span>Mark read</span>
                 </Button>
@@ -650,7 +650,7 @@ export function AccountNotificationsSurface({
               <Button
                 type="button"
                 onClick={handleDeleteAll}
-                className="flex h-full shrink-0 cursor-pointer items-center rounded-full bg-transparent px-3 text-xs font-semibold text-white/70 transition-colors duration-micro ease-out-quart select-none hover:bg-white/5 hover:text-white focus-visible:bg-white/10 focus-visible:text-white"
+                className="flex h-full shrink-0 cursor-pointer items-center rounded-full bg-transparent px-3 text-xs font-semibold text-white/70 transition-colors duration-micro ease-out-quart select-none hover:bg-white/5 hover:text-white"
               >
                 <span>Clear all</span>
               </Button>

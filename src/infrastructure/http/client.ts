@@ -1,5 +1,5 @@
-import { EVENT_TYPES, globalEvents } from "@/core/events";
-import { toUserMessage } from "@/core/utils";
+import { EVENT_TYPES, globalEvents } from "@omerdlw/base-framework/events";
+import { toUserMessage } from "@omerdlw/base-framework/utils";
 
 export interface RequestJsonOptions extends RequestInit {
   notifyOnError?: boolean;

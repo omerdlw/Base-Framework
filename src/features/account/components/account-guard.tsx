@@ -16,10 +16,10 @@ import {
   useDockContextActions,
   useDockRegistration,
   useDockSelector,
-} from "@/modules/dock";
-import { REGISTRY_SOURCES } from "@/core/kernel";
-import { useGlobalEvent } from "@/core/hooks";
-import { getCurrentPath } from "@/core/utils";
+} from "@omerdlw/base-framework/modules/dock";
+import { REGISTRY_SOURCES } from "@omerdlw/base-framework/kernel";
+import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
+import { getCurrentPath } from "@omerdlw/base-framework/utils";
 import { AccountAction } from "./dock/account-action";
 import { createAccountSetupSurfaceEntry } from "./dock/account-setup-surface";
 import { createAccountSocialSurfaceEntry } from "./dock/account-social-surface";

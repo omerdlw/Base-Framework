@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source "../../node_modules/@omerdlw/base-framework";
 
 @theme {
   --color-black: var(--black);

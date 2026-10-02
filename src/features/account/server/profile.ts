@@ -14,7 +14,7 @@ import type {
   CurrentAccount,
   PublicAccount,
 } from "../types";
-import { UserError } from "@/core/utils";
+import { UserError } from "@omerdlw/base-framework/utils";
 
 export async function getCurrentAccount(context: {
   client?: SupabaseClient<Database>;

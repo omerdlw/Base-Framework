@@ -2,12 +2,12 @@
 
 import "server-only";
 import { revalidatePath } from "next/cache";
-import { err, ok, type Result } from "@/core/result";
+import { err, ok, type Result } from "@omerdlw/base-framework/result";
 import { createServerSupabaseClient } from "@/infrastructure/supabase/server";
 import { requireUser } from "@/features/auth/server";
 import { updateAccount } from "./profile";
 import type { AccountPatchInput, CurrentAccount } from "../types";
-import { report, toUserMessage } from "@/core/utils";
+import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 
 export type FollowActionResult =
   | (Result<{ status: string | null }, string> & {

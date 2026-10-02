@@ -2,7 +2,7 @@ import "server-only";
 
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { report } from "@/core/utils";
+import { report } from "@omerdlw/base-framework/utils";
 import { getSupabasePublicConfig } from "@/infrastructure/env";
 import { getClientIp } from "@/infrastructure/security/rate-limiter";
 import { applySecurityHeaders } from "@/infrastructure/security/headers";

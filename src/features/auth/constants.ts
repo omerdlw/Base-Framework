@@ -59,7 +59,7 @@ export function resolvePageAuth(effectiveConfig: unknown): {
   return { enabled: false };
 }
 
-declare module "@/core/events" {
+declare module "@omerdlw/base-framework/events" {
   interface FrameworkEventMap {
     [AUTH_EVENTS.AUTH_ERROR]: {
       error?: unknown;
@@ -110,7 +110,7 @@ declare module "@/core/events" {
   }
 }
 
-declare module "@/core/kernel" {
+declare module "@omerdlw/base-framework/kernel" {
   interface PageConfig {
     auth?: boolean | AuthPageConfig;
   }

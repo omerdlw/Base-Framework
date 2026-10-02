@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { UserError } from "@/core/utils";
+import { UserError } from "@omerdlw/base-framework/utils";
 import { createServerSupabaseClient } from "@/infrastructure/supabase/server";
 import { assertSameOrigin } from "@/infrastructure/security/url-safety";
 import { requireUser } from "@/features/auth/server";

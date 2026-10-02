@@ -13,7 +13,7 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 import { isSupabaseConfigured } from "@/infrastructure/env";
 import { createBrowserSupabaseClient } from "@/infrastructure/supabase/client";
-import { globalEvents } from "@/core/events";
+import { globalEvents } from "@omerdlw/base-framework/events";
 import { AUTH_EVENTS, INITIAL_AUTH_STATE } from "./constants";
 import { signOut as signOutClient } from "./client";
 import { resolveAuthState } from "./utils";

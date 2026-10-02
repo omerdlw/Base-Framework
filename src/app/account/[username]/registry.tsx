@@ -10,10 +10,10 @@ import {
   type SyntheticEvent,
 } from "react";
 import { useAuth, createSignInSurfaceEntry } from "@/features/auth";
-import { useDockActions } from "@/modules/dock";
-import { globalEvents } from "@/core/events";
-import { useGlobalEvent } from "@/core/hooks";
-import { REGISTRY_SOURCES, usePage } from "@/core/kernel";
+import { useDockActions } from "@omerdlw/base-framework/modules/dock";
+import { globalEvents } from "@omerdlw/base-framework/events";
+import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
+import { REGISTRY_SOURCES, usePage } from "@omerdlw/base-framework/kernel";
 import {
   createAccountSettingsSurfaceEntry,
   type AccountData,
@@ -24,7 +24,8 @@ import {
   followUserAction,
   unfollowUserAction,
 } from "@/features/account/server/actions";
-import { report } from "@/core/utils";
+import { report, toUserMessage } from "@omerdlw/base-framework/utils";
+import { useToast } from "@omerdlw/base-framework/modules/notification";
 
 const DEFAULT_ACCOUNT_ICON = "solar:user-circle-bold";
 const FOLLOW_ACTION_KEY = "social.follow";
@@ -53,6 +54,7 @@ export function AccountRegistry({
       auth.user.id === account.id,
     );
   const { openSurface } = useDockActions();
+  const toast = useToast();
   const targetUserId = account?.id;
   const targetUsername = account?.username;
 
@@ -121,6 +123,7 @@ export function AccountRegistry({
       }
       if (isPending || !targetUserId) return;
 
+      const prevStatus = followStatus;
       startTransition(async () => {
         const isCurrentlyFollowing =
           optimisticStatus === "accepted" || optimisticStatus === "pending";
@@ -139,20 +142,41 @@ export function AccountRegistry({
               followingId: targetUserId,
               status: nextStatus,
             });
+          } else {
+            setFollowStatus(prevStatus);
+            setOptimisticStatus(prevStatus);
+            globalEvents.emit(SOCIAL_EVENTS.FOLLOW_CHANGE, {
+              followingId: targetUserId,
+              status: prevStatus,
+            });
+            toast(
+              toUserMessage(result.error, {
+                fallback: "Follow action failed",
+              }),
+            );
           }
         } catch (error) {
           report("Social follow status", error);
+          setFollowStatus(prevStatus);
+          setOptimisticStatus(prevStatus);
+          globalEvents.emit(SOCIAL_EVENTS.FOLLOW_CHANGE, {
+            followingId: targetUserId,
+            status: prevStatus,
+          });
+          toast(toUserMessage(error, { fallback: "Follow action failed" }));
         }
       });
     },
     [
       auth.isAuthenticated,
+      followStatus,
       isPending,
       openSurface,
       optimisticStatus,
       setOptimisticStatus,
       targetUserId,
       targetUsername,
+      toast,
     ],
   );
 

@@ -22,7 +22,8 @@ export const MAX_BUFFER_CACHE_ENTRIES = 8;
 
 export const METADATA_CACHE_CONTROL = "public, max-age=600";
 
-export const MEDIA_CACHE_CONTROL = "private, max-age=3600";
+export const MEDIA_CACHE_CONTROL =
+  "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400";
 
 export const THUMBNAIL_CACHE_CONTROL = "public, max-age=86400, s-maxage=86400";
 

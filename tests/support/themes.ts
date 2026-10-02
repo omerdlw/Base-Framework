@@ -1,7 +1,7 @@
 import { createElement as h } from "react";
 import { errorThemeConfig } from "../../src/config/error.core.theme.ts";
 import { primitivesThemeConfig } from "../../src/config/primitives.core.theme.ts";
-import { ThemeProvider } from "../../src/core/theme.tsx";
+import { ThemeProvider } from "@omerdlw/base-framework/theme";
 
 export function withThemes(...extra) {
   const themes = [primitivesThemeConfig, errorThemeConfig, ...extra];

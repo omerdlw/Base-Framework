@@ -1,13 +1,13 @@
 import { afterEach, describe, test } from "node:test";
 import assert from "node:assert/strict";
 import { requestJson } from "../../src/infrastructure/http/client.ts";
-import { EVENT_TYPES, globalEvents } from "../../src/core/events.ts";
+import { EVENT_TYPES, globalEvents } from "@omerdlw/base-framework/events";
 import {
   USER_MESSAGES,
   UserError,
   setReportSink,
   toUserMessage,
-} from "../../src/core/utils/index.ts";
+} from "@omerdlw/base-framework/utils";
 import { apiErrorResponse } from "../../src/infrastructure/http/api-error.ts";
 
 describe("http client", () => {

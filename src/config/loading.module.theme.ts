@@ -1,6 +1,6 @@
-import { Z_INDEX } from "@/core/tokens";
-import { defineTheme } from "@/modules/theme";
-import { loadingTheme } from "@/modules/loading";
+import { Z_INDEX } from "@omerdlw/base-framework/tokens";
+import { defineTheme } from "@omerdlw/base-framework/theme";
+import { loadingTheme } from "@omerdlw/base-framework/modules/loading";
 
 export const loadingThemeConfig = defineTheme(loadingTheme, {
   slots: {

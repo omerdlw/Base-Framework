@@ -1,6 +1,6 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { getRedisClient } from "@/infrastructure/redis";
-import { report } from "@/core/utils";
+import { report } from "@omerdlw/base-framework/utils";
 
 interface RateLimitRecord {
   count: number;

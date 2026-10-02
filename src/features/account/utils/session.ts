@@ -1,4 +1,4 @@
-import { isImageIconSource } from "@/core/utils";
+import { isImageIconSource } from "@omerdlw/base-framework/utils";
 
 const AUTH_LAST_ACCOUNT_STORAGE_KEY = "dock_last_known_account_v2";
 

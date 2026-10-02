@@ -2,8 +2,8 @@
 
 import { useEffect, type JSX } from "react";
 import Link from "next/link";
-import { Button } from "@/core/primitives";
-import { USER_MESSAGES, report } from "@/core/utils";
+import { Button } from "@/features/shell/primitives";
+import { USER_MESSAGES, report } from "@omerdlw/base-framework/utils";
 
 export interface AccountErrorProps {
   error: Error & { digest?: string };

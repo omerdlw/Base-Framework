@@ -7,7 +7,7 @@ import type {
 } from "../types";
 import { USERNAME_PATTERN } from "../constants";
 import type { AccountPatchInput, NormalizedAccountPatch } from "../types";
-import { UserError } from "@/core/utils";
+import { UserError } from "@omerdlw/base-framework/utils";
 
 export function toPublicAccount(row: any): PublicAccount | null {
   if (!row) return null;

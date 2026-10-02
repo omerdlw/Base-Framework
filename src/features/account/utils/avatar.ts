@@ -1,4 +1,4 @@
-import { trimToNull } from "@/core/utils";
+import { trimToNull } from "@omerdlw/base-framework/utils";
 
 const DEFAULT_USER_AVATAR = "/default-avatar.svg";
 

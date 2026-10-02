@@ -4,10 +4,10 @@ import { useEffect, useRef } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { isSupabaseConfigured } from "@/infrastructure/env";
 import { createBrowserSupabaseClient } from "@/infrastructure/supabase/client";
-import { globalEvents } from "@/core/events";
+import { globalEvents } from "@omerdlw/base-framework/events";
 import { SOCIAL_EVENTS } from "@/features/account/constants";
 import { useAuth } from "@/features/auth";
-import { report } from "@/core/utils";
+import { report } from "@omerdlw/base-framework/utils";
 
 export function SocialRealtimeSync() {
   const auth = useAuth();

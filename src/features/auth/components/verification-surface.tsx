@@ -25,12 +25,12 @@ import {
   textCrossfadeVariants,
   useDockActions,
   type SurfaceEntry,
-} from "@/modules/dock";
-import { useToast } from "@/modules/notification";
-import { globalEvents } from "@/core/events";
+} from "@omerdlw/base-framework/modules/dock";
+import { useToast } from "@omerdlw/base-framework/modules/notification";
+import { globalEvents } from "@omerdlw/base-framework/events";
 import { AUTH_EVENTS } from "../constants";
-import { Input, Loader } from "@/core/primitives";
-import { cn } from "@/core/utils";
+import { Input, Loader } from "@/features/shell/primitives";
+import { cn } from "@omerdlw/base-framework/utils";
 import { createAccountSetupSurfaceEntry } from "@/features/account";
 
 const OTP_LENGTH = 6;

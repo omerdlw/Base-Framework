@@ -29,12 +29,12 @@ import {
   textCrossfadeVariants,
   useDockActions,
   type SurfaceEntry,
-} from "@/modules/dock";
-import { ACTION_TONE_CLASS } from "@/core/tokens";
-import { globalEvents } from "@/core/events";
+} from "@omerdlw/base-framework/modules/dock";
+import { ACTION_TONE_CLASS } from "@omerdlw/base-framework/tokens";
+import { globalEvents } from "@omerdlw/base-framework/events";
 import { AUTH_EVENTS } from "../constants";
-import { useToast } from "@/modules/notification";
-import { Button, Icon, Input, Loader } from "@/core/primitives";
+import { useToast } from "@omerdlw/base-framework/modules/notification";
+import { Button, Icon, Input, Loader } from "@/features/shell/primitives";
 import { createVerificationSurfaceEntry } from "./verification-surface";
 
 const DEFAULT_SURFACE_WIDTH = 250;
@@ -55,10 +55,10 @@ export const AUTH_INPUT_CLASS =
   "h-10 w-full rounded-[20px] bg-white/5 px-4 text-sm text-white placeholder:text-white/50 transition-colors ease-out-quart duration-micro hover:bg-white/10 focus:bg-white/10 focus:outline-none";
 
 const PROVIDER_BUTTON_CLASS =
-  "group/btn center h-10 w-full cursor-pointer rounded-[20px] bg-white/5 px-4 text-xs @[280px]:text-sm text-white/70 hover:bg-white hover:text-black focus-visible:bg-white focus-visible:text-black disabled:cursor-not-allowed disabled:opacity-50 transition-colors ease-out-quart duration-micro";
+  "group/btn center h-10 w-full cursor-pointer rounded-[20px] bg-white/5 px-4 text-xs @[280px]:text-sm text-white/70 hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50 transition-colors ease-out-quart duration-micro";
 
 const PROVIDER_GRID_BUTTON_CLASS =
-  "group/btn center h-10 w-full cursor-pointer rounded-[20px] bg-white/5 text-white/70 hover:bg-white hover:text-black focus-visible:bg-white focus-visible:text-black disabled:cursor-not-allowed disabled:opacity-50 transition-colors ease-out-quart duration-micro";
+  "group/btn center h-10 w-full cursor-pointer rounded-[20px] bg-white/5 text-white/70 hover:bg-white hover:text-black disabled:cursor-not-allowed disabled:opacity-50 transition-colors ease-out-quart duration-micro";
 
 interface OAuthProviderButtonProps {
   disabled?: boolean;
@@ -84,7 +84,7 @@ function OAuthProviderButton({
       type="button"
     >
       <span className="flex min-w-0 items-center justify-center gap-2">
-        <span className="center size-5 shrink-0 text-white/70 group-hover/btn:text-black group-focus-visible/btn:text-black transition-colors duration-micro ease-out-quart">
+        <span className="center size-5 shrink-0 text-white/70 group-hover/btn:text-black transition-colors duration-micro ease-out-quart">
           <Icon icon={config.icon} size={18} />
         </span>
         <span className="truncate font-medium">
@@ -111,7 +111,7 @@ function OAuthProviderGridButton({
       onClick={onClick}
       type="button"
     >
-      <span className="center size-5 text-white/70 group-hover/btn:text-black group-focus-visible/btn:text-black transition-colors duration-micro ease-out-quart">
+      <span className="center size-5 text-white/70 group-hover/btn:text-black transition-colors duration-micro ease-out-quart">
         <Icon icon={config.icon} size={18} />
       </span>
     </Button>

@@ -13,7 +13,7 @@ import {
   formatSessionIp,
   parseUserAgent,
 } from "../../src/features/account/utils/session-format.ts";
-import { UserError } from "../../src/core/utils/index.ts";
+import { UserError } from "@omerdlw/base-framework/utils";
 import { updateAccount } from "../../src/features/account/server/profile.ts";
 
 import {
@@ -31,7 +31,7 @@ import {
 import {
   setReportSink as setSink,
   USER_MESSAGES as MESSAGES,
-} from "../../src/core/utils/index.ts";
+} from "@omerdlw/base-framework/utils";
 
 import {
   applyAvatarFallback,

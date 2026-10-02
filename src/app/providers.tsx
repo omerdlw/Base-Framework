@@ -1,11 +1,11 @@
 "use client";
 
 import type { JSX, ReactNode } from "react";
-import { Compose } from "@/core/kernel";
-import { defaultModules } from "@/modules";
-import { ThemeProvider } from "@/core/theme";
-import { CoreProvider } from "@/core/provider";
-import type { AppRegistryEntry } from "@/core/kernel";
+import { Compose } from "@omerdlw/base-framework/kernel";
+import { defaultModules } from "@omerdlw/base-framework/modules";
+import { ThemeProvider } from "@omerdlw/base-framework/theme";
+import { CoreProvider } from "@omerdlw/base-framework/provider";
+import type { AppRegistryEntry } from "@omerdlw/base-framework/kernel";
 import { AuthProvider, AuthListener } from "@/features/auth";
 import {
   AccountProvider,

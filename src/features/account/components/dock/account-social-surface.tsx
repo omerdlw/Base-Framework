@@ -19,13 +19,17 @@ import {
   dockListItemVariants,
   isValidBannerUrl,
   type SurfaceEntry,
-} from "@/modules/dock";
-import { useToast } from "@/modules/notification";
-import { globalEvents } from "@/core/events";
-import { useGlobalEvent } from "@/core/hooks";
-import { cn, toUserMessage, USER_MESSAGES } from "@/core/utils";
-import { Button, Icon, Loader } from "@/core/primitives";
-import { AdaptiveImage } from "@/core/primitives";
+} from "@omerdlw/base-framework/modules/dock";
+import { useToast } from "@omerdlw/base-framework/modules/notification";
+import { globalEvents } from "@omerdlw/base-framework/events";
+import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
+import {
+  cn,
+  toUserMessage,
+  USER_MESSAGES,
+} from "@omerdlw/base-framework/utils";
+import { Button, Icon, Loader } from "@/features/shell/primitives";
+import { AdaptiveImage } from "@/features/shell/primitives";
 import {
   FOLLOW_STATUSES,
   acceptFollowRequest,
@@ -75,8 +79,8 @@ type ActionKey = (typeof ACTION_KEYS)[keyof typeof ACTION_KEYS];
 const BUTTON_BASE_CLASS =
   "center h-9 shrink-0 gap-1.5 rounded-[14px] px-3.5 text-xs font-semibold select-none transition-[background-color,color,border-color,transform] duration-micro ease-out-quart cursor-pointer motion-safe:active:scale-[0.97] motion-reduce:active:scale-100 disabled:cursor-not-allowed disabled:bg-white/5 disabled:text-white/50";
 
-const PRIMARY_BUTTON_CLASS = `${BUTTON_BASE_CLASS} bg-primary/10 text-primary hover:bg-primary hover:text-black focus-visible:bg-primary focus-visible:text-black`;
-const SECONDARY_BUTTON_CLASS = `${BUTTON_BASE_CLASS} bg-white/5 text-white/70 hover:bg-white/10 hover:text-white focus-visible:bg-white/10 focus-visible:text-white`;
+const PRIMARY_BUTTON_CLASS = `${BUTTON_BASE_CLASS} bg-primary/10 text-primary hover:bg-primary hover:text-black`;
+const SECONDARY_BUTTON_CLASS = `${BUTTON_BASE_CLASS} bg-white/5 text-white/70 hover:bg-white/10 hover:text-white`;
 const DISABLED_BUTTON_CLASS = `${BUTTON_BASE_CLASS} bg-white/5 text-white/50 cursor-default`;
 
 function handleListWheel(event: WheelEvent<HTMLDivElement>) {
@@ -264,7 +268,7 @@ function SocialTabBar({
                 "flex h-full shrink-0 cursor-pointer items-center gap-2 rounded-full px-3.5 text-xs font-semibold transition-colors duration-micro ease-out-quart select-none",
                 isActive
                   ? "bg-white text-black"
-                  : "bg-transparent text-white/70 hover:bg-white/5 hover:text-white focus-visible:bg-white/10 focus-visible:text-white",
+                  : "bg-transparent text-white/70 hover:bg-white/5 hover:text-white",
               )}
             >
               <span>{tab.label}</span>
@@ -825,6 +829,10 @@ function AccountSocialSurface({ close, data }: AccountSocialSurfaceProps) {
         actionKey: ACTION_KEYS.FOLLOW,
         actionFn: async () => {
           const status = await followUser(id);
+          setFollowingStatusMap((prev) => ({
+            ...prev,
+            [id]: status || FOLLOW_STATUSES.ACCEPTED,
+          }));
           globalEvents.emit(SOCIAL_EVENTS.FOLLOW_CHANGE, {
             followingId: id,
             status,

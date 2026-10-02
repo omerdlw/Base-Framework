@@ -35,10 +35,10 @@ import {
   useDockActionClass,
   useDockActions,
   type SurfaceEntry,
-} from "@/modules/dock";
-import { useToast } from "@/modules/notification";
-import { ACTION_TONE_CLASS } from "@/core/tokens";
-import { cn } from "@/core/utils";
+} from "@omerdlw/base-framework/modules/dock";
+import { useToast } from "@omerdlw/base-framework/modules/notification";
+import { ACTION_TONE_CLASS } from "@omerdlw/base-framework/tokens";
+import { cn } from "@omerdlw/base-framework/utils";
 import {
   AdaptiveImage,
   Button,
@@ -46,7 +46,7 @@ import {
   Input,
   Loader,
   Textarea,
-} from "@/core/primitives";
+} from "@/features/shell/primitives";
 import {
   formatSessionActivity,
   formatSessionIp,
@@ -322,7 +322,7 @@ function AccountSettingsOverviewView({
           key={s.key}
           type="button"
           onClick={() => handleSelect?.(s.key)}
-          className="group/item flex min-h-[52px] w-full cursor-pointer items-center gap-3.5 rounded-[20px] bg-white/5 px-3.5 py-2 text-left transition-colors ease-out-quart duration-micro hover:bg-white/10 focus-visible:bg-white/10"
+          className="group/item flex min-h-[52px] w-full cursor-pointer items-center gap-3.5 rounded-[20px] bg-white/5 px-3.5 py-2 text-left transition-colors ease-out-quart duration-micro hover:bg-white/10"
         >
           <Icon
             icon={s.icon}
@@ -712,7 +712,7 @@ function BannerVerticalSlider({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       className={cn(
-        "group/slider flex w-10 shrink-0 cursor-ns-resize flex-col items-center justify-between self-stretch rounded-[20px] bg-white/5 py-2.5 transition-colors ease-out-quart duration-micro select-none touch-none hover:bg-white/10 focus-visible:bg-white/10 focus-visible:outline-none",
+        "group/slider flex w-10 shrink-0 cursor-ns-resize flex-col items-center justify-between self-stretch rounded-[20px] bg-white/5 py-2.5 transition-colors ease-out-quart duration-micro select-none touch-none hover:bg-white/10",
         disabled && "pointer-events-none opacity-50",
       )}
     >

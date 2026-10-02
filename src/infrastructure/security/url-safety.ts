@@ -1,4 +1,4 @@
-import { UserError } from "@/core/utils";
+import { UserError } from "@omerdlw/base-framework/utils";
 
 export function assertSameOrigin(request: Request): void {
   try {

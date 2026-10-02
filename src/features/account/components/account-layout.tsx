@@ -8,18 +8,18 @@ import {
   type ReactNode,
 } from "react";
 
-import { BackdropHero } from "@/core/primitives";
-import { AdaptiveImage } from "@/core/primitives";
-import { Button, Icon } from "@/core/primitives";
+import { BackdropHero } from "@/features/shell/primitives";
+import { AdaptiveImage } from "@/features/shell/primitives";
+import { Button, Icon } from "@/features/shell/primitives";
 import {
   applyAvatarFallback,
   getInitial,
   getUserAvatarFallbackUrl,
 } from "../utils";
 import { SOCIAL_EVENTS } from "../constants";
-import { useGlobalEvent } from "@/core/hooks";
-import { useDockActions } from "@/modules/dock";
-import { useAmbientTheme } from "@/modules/ambient";
+import { useGlobalEvent } from "@omerdlw/base-framework/hooks";
+import { useDockActions } from "@omerdlw/base-framework/modules/dock";
+import { useAmbientTheme } from "@omerdlw/base-framework/modules/ambient";
 import { createAccountSocialSurfaceEntry } from "./dock/account-social-surface";
 import { createAccountBioSurfaceEntry } from "./dock/account-bio-surface";
 
@@ -91,8 +91,12 @@ function useSocialFollowSync(
     (payload: any) => {
       if (payload?.followingId === accountId) {
         const isAccepted = payload.status === "accepted";
-        setStatus(isAccepted);
-        setDelta((prev) => (isAccepted ? prev + 1 : prev - 1));
+        setStatus((prevStatus) => {
+          if (prevStatus !== isAccepted) {
+            setDelta((prev) => (isAccepted ? prev + 1 : prev - 1));
+          }
+          return isAccepted;
+        });
       }
     },
   );

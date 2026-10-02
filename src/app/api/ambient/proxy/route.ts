@@ -1,4 +1,4 @@
-import { report } from "@/core/utils";
+import { report } from "@omerdlw/base-framework/utils";
 import { isSafeUrl } from "@/infrastructure/security/url-safety";
 
 export async function GET(request: Request): Promise<Response> {

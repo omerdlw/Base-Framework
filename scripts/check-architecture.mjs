@@ -1,7 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const ROOTS = ["src/core", "src/modules"];
+const ROOTS = ["src/core", "src/modules"].filter((dir) => fs.existsSync(dir));
+if (ROOTS.length === 0) {
+  console.log(
+    "Architecture check passed (core & modules are maintained in @omerdlw/base-framework).",
+  );
+  process.exit(0);
+}
 const files = [];
 const walk = (dir) => {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -81,7 +87,8 @@ files.forEach((file) => {
 });
 
 const modulesDir = "src/modules";
-for (const entry of fs.readdirSync(modulesDir, { withFileTypes: true })) {
+if (fs.existsSync(modulesDir)) {
+  for (const entry of fs.readdirSync(modulesDir, { withFileTypes: true })) {
   if (!entry.isDirectory()) continue;
   const dir = path.join(modulesDir, entry.name);
   const moduleFile = path.join(dir, "module.tsx");
@@ -120,6 +127,7 @@ for (const entry of fs.readdirSync(modulesDir, { withFileTypes: true })) {
       );
     }
   }
+}
 }
 
 if (problems.length > 0) {

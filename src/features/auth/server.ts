@@ -4,7 +4,7 @@ import { createServerSupabaseClient } from "@/infrastructure/supabase/server";
 import { DEFAULT_MAX_AUTH_AGE_SECONDS } from "./constants";
 import { sanitizeNextPath, toAuthUser } from "./utils";
 import type { AuthUser, RequireUserOptions } from "./types";
-import { UserError } from "@/core/utils";
+import { UserError } from "@omerdlw/base-framework/utils";
 
 export { sanitizeNextPath };
 

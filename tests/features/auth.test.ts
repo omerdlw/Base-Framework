@@ -8,7 +8,7 @@ import {
   unwrapResult,
 } from "../../src/features/auth/utils.ts";
 import { getAuthErrorMessage } from "../../src/features/auth/messages.ts";
-import { USER_MESSAGES, UserError } from "../../src/core/utils/index.ts";
+import { USER_MESSAGES, UserError } from "@omerdlw/base-framework/utils";
 
 import { afterEach as afterEachAuth } from "node:test";
 import {

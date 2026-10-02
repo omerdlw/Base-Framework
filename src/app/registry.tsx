@@ -1,4 +1,4 @@
-import type { AppRegistryEntry } from "@/core/kernel";
+import type { AppRegistryEntry } from "@omerdlw/base-framework/kernel";
 import { project } from "@config/project";
 import { DEFAULT_ACCOUNT_ICON } from "@/features/account/constants";
 

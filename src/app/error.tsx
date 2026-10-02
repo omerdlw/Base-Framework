@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, type JSX } from "react";
-import { Button } from "@/core/primitives";
-import { USER_MESSAGES, report } from "@/core/utils";
+import { useEffect } from "react";
+import { EVENT_TYPES, globalEvents } from "@omerdlw/base-framework/events";
+import { report, toUserMessage } from "@omerdlw/base-framework/utils";
 
 export interface ErrorBoundaryProps {
   error: Error & { digest?: string };
@@ -12,22 +12,23 @@ export interface ErrorBoundaryProps {
 export default function ErrorBoundary({
   error,
   reset,
-}: ErrorBoundaryProps): JSX.Element {
+}: ErrorBoundaryProps): null {
   useEffect(() => {
     report("App", error);
-  }, [error]);
+    // The dock subscribes in an effect that runs after this one in the same
+    // commit, so emit on the next tick.
+    const timer = setTimeout(
+      () =>
+        globalEvents.emit(EVENT_TYPES.APP_ERROR, {
+          error,
+          message: toUserMessage(error),
+          resetError: reset,
+          source: "app-error-boundary",
+        }),
+      0,
+    );
+    return () => clearTimeout(timer);
+  }, [error, reset]);
 
-  return (
-    <main className="center min-h-screen flex-col gap-3 px-6 text-center">
-      <p className="text-lg font-semibold text-white">Something went wrong</p>
-      <p className="text-sm text-white/60">{USER_MESSAGES.generic}</p>
-      <Button
-        className="mt-3 cursor-pointer rounded-full bg-white/10 px-5 py-2.5 text-xs font-medium text-white transition-colors duration-micro ease-out-quart hover:bg-white hover:text-black"
-        onClick={() => reset()}
-        type="button"
-      >
-        Try again
-      </Button>
-    </main>
-  );
+  return null;
 }

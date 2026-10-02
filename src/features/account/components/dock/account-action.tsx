@@ -1,9 +1,9 @@
 "use client";
 
 import { memo, type MouseEvent } from "react";
-import { Button, Icon } from "@/core/primitives";
-import { useDockActionClass } from "@/modules/dock";
-import { ACTION_TONE_CLASS } from "@/core/tokens";
+import { Button, Icon } from "@/features/shell/primitives";
+import { useDockActionClass } from "@omerdlw/base-framework/modules/dock";
+import { ACTION_TONE_CLASS } from "@omerdlw/base-framework/tokens";
 
 interface AccountInboxActionProps {
   canManageRequests?: boolean;

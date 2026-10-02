@@ -15,7 +15,7 @@ import {
   buildContentSecurityPolicy,
 } from "../../src/infrastructure/security/headers.ts";
 
-import { UserError } from "../../src/core/utils/index.ts";
+import { UserError } from "@omerdlw/base-framework/utils";
 
 afterEach(() => mock.timers.reset());
 

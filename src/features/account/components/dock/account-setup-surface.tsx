@@ -15,11 +15,11 @@ import {
   DOCK_FADE_TRANSITION,
   textCrossfadeVariants,
   type SurfaceEntry,
-} from "@/modules/dock";
-import { ACTION_TONE_CLASS } from "@/core/tokens";
-import { globalEvents } from "@/core/events";
-import { useToast } from "@/modules/notification";
-import { Button, Input, Loader } from "@/core/primitives";
+} from "@omerdlw/base-framework/modules/dock";
+import { ACTION_TONE_CLASS } from "@omerdlw/base-framework/tokens";
+import { globalEvents } from "@omerdlw/base-framework/events";
+import { useToast } from "@omerdlw/base-framework/modules/notification";
+import { Button, Input, Loader } from "@/features/shell/primitives";
 
 const DEFAULT_REDIRECT = "/account";
 

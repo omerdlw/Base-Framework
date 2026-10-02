@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { Spinner } from "@/core/primitives";
+import { Spinner } from "@/features/shell/primitives";
 
 export default function AccountProfileLoading(): JSX.Element {
   return (

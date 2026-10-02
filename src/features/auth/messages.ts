@@ -1,4 +1,4 @@
-import { toUserMessage } from "@/core/utils";
+import { toUserMessage } from "@omerdlw/base-framework/utils";
 
 const AUTH_ERROR_CODES: Readonly<Record<string, string>> = Object.freeze({
   otp_expired: "That code has expired or isn't valid. Request a new one",

@@ -5,7 +5,7 @@ import {
   DOCK_FADE_TRANSITION,
   textCrossfadeVariants,
   type SurfaceEntry,
-} from "@/modules/dock";
+} from "@omerdlw/base-framework/modules/dock";
 
 const FALLBACK_BIO_TEXT = "No bio provided";
 const DEFAULT_TITLE = "Account";
