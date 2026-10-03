@@ -101,8 +101,9 @@ console.log(`📌 Target upstream framework version:  ${targetTag}`);
 const hasImmutableCoreBaseline =
   typeof manifest.upstreamCommit === "string" &&
   /^[a-f0-9]{40,64}$/i.test(manifest.upstreamCommit) &&
-  typeof manifest.coreTreeHash === "string" &&
-  /^[a-f0-9]{40,64}$/i.test(manifest.coreTreeHash);
+  (manifest.coreTreeHash === undefined ||
+    (typeof manifest.coreTreeHash === "string" &&
+      /^[a-f0-9]{40,64}$/i.test(manifest.coreTreeHash)));
 
 if (currentTag === targetTag && hasImmutableCoreBaseline) {
   console.log("\n✅ Already up-to-date! No synchronization needed.");
@@ -238,9 +239,15 @@ if (verificationPassed) {
     "rev-parse",
     `refs/tags/${targetTag}^{commit}`,
   ]);
-  const coreTreeHash = runGit(["rev-parse", `${upstreamCommit}:src/core`]);
+  const coreTreeHash = tryGit(["rev-parse", `${upstreamCommit}:src/core`], {
+    stdio: ["ignore", "pipe", "ignore"],
+  });
   manifest.frameworkVersion = targetTag.replace(/^v/, "");
-  manifest.coreTreeHash = coreTreeHash;
+  if (coreTreeHash) {
+    manifest.coreTreeHash = coreTreeHash;
+  } else {
+    delete manifest.coreTreeHash;
+  }
   manifest.upstreamCommit = upstreamCommit;
   manifest.upstreamTag = targetTag;
   fs.writeFileSync(

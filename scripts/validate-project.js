@@ -29,13 +29,15 @@ if (isDownstream) {
     const { upstreamCommit } = manifest;
     const isHash = (value) =>
       typeof value === "string" && /^[a-f0-9]{40,64}$/i.test(value);
-    const frozenTrees = [{ dir: "src/core", key: "coreTreeHash" }];
+    const frozenTrees = manifest.coreTreeHash
+      ? [{ dir: "src/core", key: "coreTreeHash" }]
+      : [];
     if (
       !isHash(upstreamCommit) ||
       frozenTrees.some(({ key }) => !isHash(manifest[key]))
     ) {
       errors.push(
-        ".framework-manifest.json is missing a valid upstreamCommit/coreTreeHash immutable baseline; run framework sync from a release that records the baseline.",
+        ".framework-manifest.json is missing a valid upstreamCommit baseline; run framework sync from a release that records the baseline.",
       );
     } else {
       for (const { dir, key } of frozenTrees) {

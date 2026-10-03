@@ -124,15 +124,23 @@ function formatGeneratedFiles() {
 }
 
 let upstreamCommit;
-let coreTreeHash;
+let coreTreeHash = null;
 if (isFullRun) {
   try {
     upstreamCommit = git(["rev-parse", "HEAD"]);
-    coreTreeHash = git(["rev-parse", `${upstreamCommit}:src/core`]);
   } catch {
     fail(
-      "Scaffolding needs a Git checkout with a committed src/core tree so its immutable baseline can be recorded.",
+      "Scaffolding needs a Git checkout so its upstream baseline can be recorded.",
     );
+  }
+  try {
+    coreTreeHash = execFileSync(
+      "git",
+      ["rev-parse", `${upstreamCommit}:src/core`],
+      { cwd: rootDir, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] },
+    ).trim();
+  } catch {
+    // src/core is maintained externally via @omerdlw/base-framework package
   }
   if (exists(".framework-manifest.json")) {
     fail(
@@ -298,15 +306,16 @@ if (isFullRun) {
     if (tag) currentTag = tag;
   } catch {}
 
-  step(`record upstream baseline (${currentTag})`, () =>
-    writeJson(".framework-manifest.json", {
-      coreTreeHash,
+  step(`record upstream baseline (${currentTag})`, () => {
+    const manifest = {
       frameworkVersion: currentTag.replace(/^v/, ""),
       pruned: prunedGroups,
       upstreamCommit,
       upstreamTag: currentTag,
-    }),
-  );
+    };
+    if (coreTreeHash) manifest.coreTreeHash = coreTreeHash;
+    writeJson(".framework-manifest.json", manifest);
+  });
 
   if (!options.dryRun) {
     formatGeneratedFiles();
